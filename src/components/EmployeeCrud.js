@@ -9,6 +9,8 @@ const EmployeeList = () => {
   const [lastName, setLastName] = useState("");
   const [address, setAddress] = useState("");
   const [email, setEmail] = useState("");
+  const [workCenterId, setWorkCenterId] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
   const [operation, setOperation] = useState(1);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
 
@@ -27,7 +29,7 @@ const EmployeeList = () => {
       });
   };
 
-  const openModal = (op, id, fName, lName, addr, mail) => {
+  const openModal = (op, id, fName, lName, addr, mail, wcId, depId) => {
     setOperation(op);
     setSelectedEmployeeId(id);
     if (op === 1) {
@@ -36,17 +38,21 @@ const EmployeeList = () => {
       setLastName("");
       setAddress("");
       setEmail("");
+      setWorkCenterId("");
+      setDepartmentId("");
     } else {
       setTitle("Editar Empleado");
       setFirstName(fName);
       setLastName(lName);
       setAddress(addr);
       setEmail(mail);
+      setWorkCenterId(wcId);
+      setDepartmentId(depId);
     }
   };
 
   const validate = () => {
-    if (!firstName || !lastName || !address || !email) {
+    if (!firstName || !lastName || !address || !email || !workCenterId || !departmentId) {
       alert("Por favor, completa todos los campos.");
       return;
     }
@@ -70,6 +76,8 @@ const EmployeeList = () => {
         lastName,
         address,
         email,
+        workCenter: { id: workCenterId },
+        department: { id: departmentId }
       })
       .then(() => {
         fetchEmployees();
@@ -97,6 +105,8 @@ const EmployeeList = () => {
       lastName,
       address,
       email,
+      workCenter: { id: workCenterId },
+      department: { id: departmentId }
     };
 
     axios
@@ -160,6 +170,8 @@ const EmployeeList = () => {
     setLastName("");
     setAddress("");
     setEmail("");
+    setWorkCenterId("");
+    setDepartmentId("");
     setOperation(1);
     setSelectedEmployeeId(null);
   };
@@ -198,6 +210,8 @@ const EmployeeList = () => {
                   <th>Apellido</th>
                   <th>Dirección</th>
                   <th>Email</th>
+                  <th>Centro de Trabajo</th>
+                  <th>Departamento</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
@@ -209,6 +223,8 @@ const EmployeeList = () => {
                     <td>{employee.lastName}</td>
                     <td>{employee.address}</td>
                     <td>{employee.email}</td>
+                    <td>{employee.workCenter.location}</td>
+                    <td>{employee.department.name}</td>
                     <td>
                       <button
                         onClick={() =>
@@ -218,7 +234,9 @@ const EmployeeList = () => {
                             employee.firstName,
                             employee.lastName,
                             employee.address,
-                            employee.email
+                            employee.email,
+                            employee.workCenter.id,
+                            employee.department.id
                           )
                         }
                         className="btn btn-outline-warning me-2"
@@ -296,6 +314,26 @@ const EmployeeList = () => {
                   placeholder="Email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div className="mb-3">
+                <input
+                  type="number"
+                  min={1}
+                  className="form-control"
+                  placeholder="Centro de Trabajo (ID)"
+                  value={workCenterId}
+                  onChange={(e) => setWorkCenterId(e.target.value)}
+                />
+              </div>
+              <div className="mb-3">
+                <input
+                  type="number"
+                  min={1}
+                  className="form-control"
+                  placeholder="Departamento (ID)"
+                  value={departmentId}
+                  onChange={(e) => setDepartmentId(e.target.value)}
                 />
               </div>
               <div className="d-grid col-6 mx-auto">
