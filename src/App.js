@@ -9,7 +9,7 @@ function App() {
 
   return (
     <Tabs
-      id="controlled-tab-example"
+      id="controlled-tab"
       activeKey={key}
       onSelect={(k) => setKey(k)}
     >
@@ -22,13 +22,6 @@ function App() {
       <Tab eventKey="department" title="Departamento">
         <DepartmentCrud/>
       </Tab>
-      {/* Agrega más pestañas para otros componentes */}
-      {/* <Tab eventKey="componente2" title="Nombre de la pestaña 2">
-        <Componente2 />
-      </Tab>
-      <Tab eventKey="componente3" title="Nombre de la pestaña 3">
-        <Componente3 />
-      </Tab> */}
     </Tabs>
   );
 }

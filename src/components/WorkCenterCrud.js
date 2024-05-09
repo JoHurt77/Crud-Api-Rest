@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import Pagination from "./Pagination";
 
 const WorkCenterCrud = () => {
   const [workCenters, setWorkCenters] = useState([]);
@@ -14,7 +15,7 @@ const WorkCenterCrud = () => {
 
   const fetchWorkCenters = () => {
     axios
-      .get("http://localhost:8080/workCenter/list")
+      .get(`${process.env.REACT_APP_API_BASE_URL}/workCenter/list`)
       .then((response) => {
         setWorkCenters(response.data);
       })
@@ -48,7 +49,7 @@ const WorkCenterCrud = () => {
 
   const addWorkCenter = () => {
     axios
-      .post("http://localhost:8080/workCenter/save", {
+      .post(`${process.env.REACT_APP_API_BASE_URL}/workCenter/save`, {
         location,
       })
       .then(() => {
@@ -77,7 +78,10 @@ const WorkCenterCrud = () => {
     };
 
     axios
-      .put(`http://localhost:8080/workCenter/update/${selectedWorkCenterId}`, updatedWorkCenter)
+      .put(
+        `${process.env.REACT_APP_API_BASE_URL}/workCenter/update/${selectedWorkCenterId}`,
+        updatedWorkCenter
+      )
       .then(() => {
         fetchWorkCenters();
         closeModal();
@@ -110,7 +114,9 @@ const WorkCenterCrud = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .delete(`http://localhost:8080/workCenter/delete/${id}`)
+          .delete(
+            `${process.env.REACT_APP_API_BASE_URL}/workCenter/delete/${id}`
+          )
           .then(() => {
             fetchWorkCenters();
             Swal.fire({
@@ -137,6 +143,21 @@ const WorkCenterCrud = () => {
     setSelectedWorkCenterId(null);
   };
 
+  //Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+
+  // Get current item
+  const indexOfLast_item = currentPage * itemsPerPage;
+  const indexOfFirst_item = indexOfLast_item - itemsPerPage;
+  const currentItems = workCenters.slice(
+    indexOfFirst_item,
+    indexOfLast_item
+  );
+
+  // Change page
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   return (
     <div className="container">
       <div className="row mt-3">
@@ -148,7 +169,8 @@ const WorkCenterCrud = () => {
               data-bs-toggle="modal"
               data-bs-target="#modalWorkCenters"
             >
-              <i className="fa-solid fa-circle-plus"></i> Añadir Centro de Trabajo
+              <i className="fa-solid fa-circle-plus"></i> Añadir Centro de
+              Trabajo
             </button>
           </div>
         </div>
@@ -165,41 +187,40 @@ const WorkCenterCrud = () => {
                 </tr>
               </thead>
               <tbody>
-                {Array.isArray(workCenters) && workCenters.map((workCenter, index) => (
-                  <tr key={index}>
-                    <td>{workCenter.id}</td>
-                    <td>{workCenter.location}</td>
-                    <td>
-                      <button
-                        onClick={() =>
-                          openModal(
-                            2,
-                            workCenter.id,
-                            workCenter.location
-                          )
-                        }
-                        className="btn btn-outline-warning me-2"
-                        data-bs-toggle="modal"
-                        data-bs-target="#modalWorkCenters"
-                      >
-                        <i className="fa-solid fa-edit"></i> Editar
-                      </button>
-                      <button
-                        onClick={() =>
-                          deleteWorkCenter(
-                            workCenter.id,
-                            workCenter.location
-                          )
-                        }
-                        className="btn btn-outline-danger"
-                      >
-                        <i className="fa-solid fa-trash"></i> Eliminar
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {Array.isArray(currentItems) &&
+                  currentItems.map((workCenter, index) => (
+                    <tr key={index}>
+                      <td>{workCenter.id}</td>
+                      <td>{workCenter.location}</td>
+                      <td>
+                        <button
+                          onClick={() =>
+                            openModal(2, workCenter.id, workCenter.location)
+                          }
+                          className="btn btn-outline-warning me-2"
+                          data-bs-toggle="modal"
+                          data-bs-target="#modalWorkCenters"
+                        >
+                          <i className="fa-solid fa-edit"></i> Editar
+                        </button>
+                        <button
+                          onClick={() =>
+                            deleteWorkCenter(workCenter.id, workCenter.location)
+                          }
+                          className="btn btn-outline-danger"
+                        >
+                          <i className="fa-solid fa-trash"></i> Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
+            <Pagination
+              itemsPerPage={itemsPerPage}
+              totalItems={workCenters.length}
+              paginate={paginate}
+            />
           </div>
         </div>
       </div>

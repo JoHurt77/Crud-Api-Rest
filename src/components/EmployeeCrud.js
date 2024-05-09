@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import Pagination from "./Pagination";
 
 const EmployeeList = () => {
   const [employees, setEmployees] = useState([]);
@@ -20,7 +21,7 @@ const EmployeeList = () => {
 
   const fetchEmployees = () => {
     axios
-      .get("http://localhost:8080/employee/list")
+      .get(`${process.env.REACT_APP_API_BASE_URL}/employee/list`)//la url se edita en -> .env.local -> "REACT_APP_API_BASE_URL=http://localhost:8080"
       .then((response) => {
         setEmployees(response.data);
       })
@@ -52,7 +53,14 @@ const EmployeeList = () => {
   };
 
   const validate = () => {
-    if (!firstName || !lastName || !address || !email || !workCenterId || !departmentId) {
+    if (
+      !firstName ||
+      !lastName ||
+      !address ||
+      !email ||
+      !workCenterId ||
+      !departmentId
+    ) {
       alert("Por favor, completa todos los campos.");
       return;
     }
@@ -69,15 +77,22 @@ const EmployeeList = () => {
     }
   };
 
+  const validateEmail = (email) => {
+    const re =
+      // eslint-disable-next-line no-useless-escape
+      /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
+  };
+
   const addEmployee = () => {
     axios
-      .post("http://localhost:8080/employee/save", {
+      .post(`${process.env.REACT_APP_API_BASE_URL}/employee/save`, {
         firstName,
         lastName,
         address,
         email,
         workCenter: { id: workCenterId },
-        department: { id: departmentId }
+        department: { id: departmentId },
       })
       .then(() => {
         fetchEmployees();
@@ -106,11 +121,11 @@ const EmployeeList = () => {
       address,
       email,
       workCenter: { id: workCenterId },
-      department: { id: departmentId }
+      department: { id: departmentId },
     };
 
     axios
-      .put(`http://localhost:8080/employee/update`, updatedEmployee)
+      .put(`${process.env.REACT_APP_API_BASE_URL}/employee/update`, updatedEmployee)
       .then(() => {
         fetchEmployees();
         closeModal();
@@ -143,7 +158,7 @@ const EmployeeList = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .delete(`http://localhost:8080/employee/delete/${id}`)
+          .delete(`${process.env.REACT_APP_API_BASE_URL}/employee/delete/${id}`)
           .then(() => {
             fetchEmployees();
             Swal.fire({
@@ -176,12 +191,20 @@ const EmployeeList = () => {
     setSelectedEmployeeId(null);
   };
 
-  const validateEmail = (email) => {
-    const re =
-      // eslint-disable-next-line no-useless-escape
-      /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return re.test(String(email).toLowerCase());
-  };
+  //Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+
+  // Get current employees
+  const indexOfLastEmployee = currentPage * itemsPerPage;
+  const indexOfFirstEmployee = indexOfLastEmployee - itemsPerPage;
+  const currentEmployees = employees.slice(
+    indexOfFirstEmployee,
+    indexOfLastEmployee
+  );
+
+  // Change page
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
     <div className="container">
@@ -216,52 +239,58 @@ const EmployeeList = () => {
                 </tr>
               </thead>
               <tbody>
-                {Array.isArray(employees) && employees.map((employee, index) => (
-                  <tr key={index}>
-                    <td>{employee.id}</td>
-                    <td>{employee.firstName}</td>
-                    <td>{employee.lastName}</td>
-                    <td>{employee.address}</td>
-                    <td>{employee.email}</td>
-                    <td>{employee.workCenter.location}</td>
-                    <td>{employee.department.name}</td>
-                    <td>
-                      <button
-                        onClick={() =>
-                          openModal(
-                            2,
-                            employee.id,
-                            employee.firstName,
-                            employee.lastName,
-                            employee.address,
-                            employee.email,
-                            employee.workCenter.id,
-                            employee.department.id
-                          )
-                        }
-                        className="btn btn-outline-warning me-2"
-                        data-bs-toggle="modal"
-                        data-bs-target="#modalEmployees"
-                      >
-                        <i className="fa-solid fa-edit"></i> Editar
-                      </button>
-                      <button
-                        onClick={() =>
-                          deleteEmployee(
-                            employee.id,
-                            employee.firstName,
-                            employee.lastName
-                          )
-                        }
-                        className="btn btn-outline-danger"
-                      >
-                        <i className="fa-solid fa-trash"></i> Eliminar
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {Array.isArray(currentEmployees) &&
+                  currentEmployees.map((employee, index) => (
+                    <tr key={index}>
+                      <td>{employee.id}</td>
+                      <td>{employee.firstName}</td>
+                      <td>{employee.lastName}</td>
+                      <td>{employee.address}</td>
+                      <td>{employee.email}</td>
+                      <td>{employee.workCenter.location}</td>
+                      <td>{employee.department.name}</td>
+                      <td>
+                        <button
+                          onClick={() =>
+                            openModal(
+                              2,
+                              employee.id,
+                              employee.firstName,
+                              employee.lastName,
+                              employee.address,
+                              employee.email,
+                              employee.workCenter.id,
+                              employee.department.id
+                            )
+                          }
+                          className="btn btn-outline-warning me-2"
+                          data-bs-toggle="modal"
+                          data-bs-target="#modalEmployees"
+                        >
+                          <i className="fa-solid fa-edit"></i> Editar
+                        </button>
+                        <button
+                          onClick={() =>
+                            deleteEmployee(
+                              employee.id,
+                              employee.firstName,
+                              employee.lastName
+                            )
+                          }
+                          className="btn btn-outline-danger"
+                        >
+                          <i className="fa-solid fa-trash"></i> Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
+            <Pagination
+        itemsPerPage={itemsPerPage}
+        totalItems={employees.length}
+        paginate={paginate}
+      />
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import Pagination from "./Pagination";
 
 const DepartmentCrud = () => {
   const [departments, setDepartments] = useState([]);
@@ -14,7 +15,7 @@ const DepartmentCrud = () => {
 
   const fetchDepartments = () => {
     axios
-      .get("http://localhost:8080/department/list")
+      .get(`${process.env.REACT_APP_API_BASE_URL}/department/list`)
       .then((response) => {
         setDepartments(response.data);
       })
@@ -48,7 +49,7 @@ const DepartmentCrud = () => {
 
   const addDepartment = () => {
     axios
-      .post("http://localhost:8080/department/save", {
+      .post(`${process.env.REACT_APP_API_BASE_URL}/department/save`, {
         name,
       })
       .then(() => {
@@ -77,7 +78,7 @@ const DepartmentCrud = () => {
     };
 
     axios
-      .put(`http://localhost:8080/department/update/${selectedDepartmentId}`, updatedDepartment)
+      .put(`${process.env.REACT_APP_API_BASE_URL}/department/update/${selectedDepartmentId}`, updatedDepartment)
       .then(() => {
         fetchDepartments();
         closeModal();
@@ -110,7 +111,7 @@ const DepartmentCrud = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .delete(`http://localhost:8080/department/delete/${id}`)
+          .delete(`${process.env.REACT_APP_API_BASE_URL}/department/delete/${id}`)
           .then(() => {
             fetchDepartments();
             Swal.fire({
@@ -136,6 +137,21 @@ const DepartmentCrud = () => {
     setOperation(1);
     setSelectedDepartmentId(null);
   };
+
+   //Pagination
+   const [currentPage, setCurrentPage] = useState(1);
+   const [itemsPerPage] = useState(10);
+ 
+   // Get current departments
+   const indexOfLastDepartment = currentPage * itemsPerPage;
+   const indexOfFirstDepartment = indexOfLastDepartment - itemsPerPage;
+   const currentDepartments = departments.slice(
+     indexOfFirstDepartment,
+     indexOfLastDepartment
+   );
+ 
+   // Change page
+   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
     <div className="container">
@@ -165,7 +181,7 @@ const DepartmentCrud = () => {
                 </tr>
               </thead>
               <tbody>
-                {Array.isArray(departments) && departments.map((department, index) => (
+                {Array.isArray(currentDepartments) && currentDepartments.map((department, index) => (
                   <tr key={index}>
                     <td>{department.id}</td>
                     <td>{department.name}</td>
@@ -200,6 +216,11 @@ const DepartmentCrud = () => {
                 ))}
               </tbody>
             </table>
+            <Pagination
+              itemsPerPage={itemsPerPage}
+              totalItems={departments.length}
+              paginate={paginate}
+            />
           </div>
         </div>
       </div>
